@@ -1,3 +1,14 @@
+/**
+ * User routes for authentication and profile management.
+ *
+ * POST   /register         - Register a new user
+ * POST   /login            - Log in a user
+ * POST   /logout           - Log out the current user
+ * GET    /verify           - Verify authentication token
+ * GET    /profile          - Get the authenticated user's profile
+ * POST   /forgot-password  - Send password reset email
+ * POST   /reset-password   - Reset user password with a valid token
+ */
 import { Router } from "express";
 import {
   registerUser,

@@ -4,6 +4,14 @@ dotenv.config();
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
+/**
+ * Sends a password reset email using SendGrid.
+ * @async
+ * @function sendResetEmail
+ * @param {string} to - The recipient's email address.
+ * @param {string} link - The password reset link to include in the email.
+ * @returns {Promise<void>}
+ */
 export const sendResetEmail = async (to, link) => {
   const msg = {
     to,

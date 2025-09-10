@@ -6,6 +6,14 @@ import dotenv from "dotenv";
 import { sendResetEmail } from "../libs/mailer.js";
 dotenv.config();
 
+/**
+ * Registers a new user in the system.
+ * @async
+ * @function registerUser
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 export const registerUser = async (req, res) => {
   const { name, lastname, age, email, password } = req.body;
 
@@ -38,6 +46,14 @@ export const registerUser = async (req, res) => {
   }
 };
 
+/**
+ * Authenticates a user and returns a token if credentials are valid.
+ * @async
+ * @function loginUser
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
@@ -108,6 +124,14 @@ export const profile = async (req, res) => {
   });
 };
 
+/**
+ * Logs out the current user by clearing the authentication cookie.
+ * @async
+ * @function logout
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 export const logout = async (req, res) => {
   res.cookie("token", "", {
     httpOnly: true,
@@ -117,6 +141,14 @@ export const logout = async (req, res) => {
   return res.sendStatus(200);
 };
 
+/**
+ * Sends a password reset email with a secure, single-use token valid for 1 hour.
+ * @async
+ * @function forgotPassword
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
   const user = await User.findOne({ email });
@@ -139,6 +171,14 @@ export const forgotPassword = async (req, res) => {
   return res.sendStatus(200);
 };
 
+/**
+ * Resets the user's password using a valid, single-use token.
+ * @async
+ * @function resetPassword
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 export const resetPassword = async (req, res) => {
   const { token, password } = req.body;
   let payload;

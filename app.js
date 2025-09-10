@@ -1,3 +1,12 @@
+/**
+ * Express application setup.
+ * Configures middleware, routes, and environment variables for the backend API.
+ *
+ * - Uses CORS with credentials
+ * - Parses URL-encoded and JSON request bodies
+ * - Handles cookies
+ * - Mounts user and task routes under /api/v1
+ */
 import express from "express";
 
 import cors from "cors";

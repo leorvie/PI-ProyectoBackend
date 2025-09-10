@@ -1,5 +1,14 @@
 import Task from "../models/Task.js";
 
+/**
+ * Retrieves all tasks for the authenticated user.
+ * @async
+ * @function getTasks
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
+
 export const getTasks = async (req, res) => {
   try {
     const tasks = await Task.find({ user: req.user.id }).populate("user");
@@ -10,6 +19,15 @@ export const getTasks = async (req, res) => {
       .json({ message: "No pudimos obtener tus tareas, inténtalo más tarde" });
   }
 };
+
+/**
+ * Creates a new task for the authenticated user.
+ * @async
+ * @function createTask
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 
 export const createTask = async (req, res) => {
   try {
@@ -26,6 +44,15 @@ export const createTask = async (req, res) => {
   }
 };
 
+/**
+ * Deletes a task by its ID.
+ * @async
+ * @function deleteTask
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
+
 export const deleteTask = async (req, res) => {
   try {
     const deletedTask = await Task.findByIdAndDelete(req.params.id);
@@ -37,6 +64,15 @@ export const deleteTask = async (req, res) => {
     return res.sendStatus(500).json({ message: error.message });
   }
 };
+
+/**
+ * Updates an existing task by its ID.
+ * @async
+ * @function updateTask
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 
 export const updateTask = async (req, res) => {
   try {
@@ -51,6 +87,15 @@ export const updateTask = async (req, res) => {
     return res.sendStatus(500).json({ message: error.message });
   }
 };
+
+/**
+ * Retrieves a single task by its ID.
+ * @async
+ * @function getTask
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 
 export const getTask = async (req, res) => {
   try {

@@ -1,3 +1,13 @@
+/**
+ * Task routes for managing user tasks.
+ * All routes are protected and require authentication.
+ *
+ * POST   /tasks/new      - Create a new task
+ * GET    /tasks          - Get all tasks for the authenticated user
+ * GET    /tasks/:id      - Get a single task by ID
+ * DELETE /tasks/:id      - Delete a task by ID
+ * PUT    /tasks/:id      - Update a task by ID
+ */
 import { Router } from "express";
 import { auth } from "../middleware/auth.js";
 import {
