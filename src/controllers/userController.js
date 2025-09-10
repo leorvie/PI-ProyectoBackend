@@ -43,7 +43,7 @@ export const loginUser = async (req, res) => {
   try {
     const userFound = await User.findOne({ email });
     if (!userFound)
-      return res.status(400).json({ message: "Usuario no encontrado" });
+      return res.status(400).json({ message: "Correo o contraseña inválidos" });
 
     const isMatch = await bcrypt.compare(password, userFound.password);
     if (!isMatch)
@@ -53,8 +53,8 @@ export const loginUser = async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none", // o "lax" o "none"
+
+      sameSite: "none",
     });
 
     res.status(200).json({
@@ -84,6 +84,8 @@ export const verifyToken = async (req, res) => {
     return res.json({
       id: userFound._id,
       name: userFound.name,
+      lastname: userFound.lastname,
+      age: userFound.age,
       email: userFound.email,
     });
   });
@@ -91,11 +93,14 @@ export const verifyToken = async (req, res) => {
 
 export const profile = async (req, res) => {
   const userFound = await User.findById(req.user.id);
-  if (!userFound) return res.status(400).json({ message: "User not found" });
+  if (!userFound)
+    return res.status(400).json({ message: "Usuario no encontrado" });
 
   return res.json({
     id: userFound._id,
     name: userFound.name,
+    lastname: userFound.lastname,
+    age: userFound.age,
     email: userFound.email,
     createdAt: userFound.createdAt,
     updatedAt: userFound.updatedAt,
@@ -105,7 +110,7 @@ export const profile = async (req, res) => {
 export const logout = async (req, res) => {
   res.cookie("token", "", {
     httpOnly: true,
-    secure: true,
+
     expires: new Date(0),
   });
   return res.sendStatus(200);
