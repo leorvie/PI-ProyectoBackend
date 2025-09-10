@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { createAccessToken } from "../libs/jwt.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import { sendResetEmail } from "../libs/mailer.js";
 dotenv.config();
 
 export const registerUser = async (req, res) => {
@@ -111,5 +112,53 @@ export const logout = async (req, res) => {
 
     expires: new Date(0),
   });
+  return res.sendStatus(200);
+};
+
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) return res.sendStatus(202);
+
+  // Crea un JWT con el id del usuario y expira en 1 hora
+  const token = jwt.sign({ id: user._id }, process.env.TOKEN_SECRET, {
+    expiresIn: "1h",
+  });
+
+  // Guarda el token en el usuario para invalidarlo tras el primer uso
+  user.resetPasswordToken = token;
+  user.resetPasswordExpires = Date.now() + 60 * 60 * 1000;
+  await user.save();
+
+  const resetLink = `${process.env.FRONTEND_URL}/reset?token=${token}`;
+  await sendResetEmail(user.email, resetLink);
+  //console.log(`Enviar email a ${email} con link: ${resetLink}`);
+
+  return res.sendStatus(200);
+};
+
+export const resetPassword = async (req, res) => {
+  const { token, password } = req.body;
+  let payload;
+  try {
+    payload = jwt.verify(token, process.env.TOKEN_SECRET);
+  } catch {
+    return res.status(400).json({ message: "Token inválido o expirado" });
+  }
+
+  // Busca el usuario con ese token y que no haya expirado
+  const user = await User.findOne({
+    _id: payload.id,
+    resetPasswordToken: token,
+    resetPasswordExpires: { $gt: Date.now() },
+  });
+  if (!user) {
+    return res.status(400).json({ message: "Token inválido o expirado" });
+  }
+
+  user.password = await bcrypt.hash(password, 10);
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
+  await user.save();
   return res.sendStatus(200);
 };
