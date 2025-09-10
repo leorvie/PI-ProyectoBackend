@@ -22,7 +22,7 @@ export const createTask = async (req, res) => {
     await newTask.save();
     res.status(201).json(newTask);
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: "No pudimos crear tu tarea" });
   }
 };
 
@@ -59,6 +59,6 @@ export const getTask = async (req, res) => {
       return res.status(404).json({ message: "No pudimos encontrar tu tarea" });
     return res.json(task);
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: "No pudimos encontrar tu tarea" });
   }
 };
