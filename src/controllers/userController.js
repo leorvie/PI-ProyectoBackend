@@ -185,7 +185,7 @@ export const resetPassword = async (req, res) => {
   try {
     payload = jwt.verify(token, process.env.TOKEN_SECRET);
   } catch {
-    return res.sendStatus(400).json({ message: "Token inválido o expirado" });
+    return res.sendStatus(400).json({ message: "Enlace inválido o caducado" });
   }
 
   // Busca el usuario con ese token y que no haya expirado
@@ -195,7 +195,7 @@ export const resetPassword = async (req, res) => {
     resetPasswordExpires: { $gt: Date.now() },
   });
   if (!user) {
-    return res.sendStatus(400).json({ message: "Token inválido o expirado" });
+    return res.sendStatus(400).json({ message: "Enlace inválido o caducado" });
   }
 
   user.password = await bcrypt.hash(password, 10);
