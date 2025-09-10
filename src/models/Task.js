@@ -7,7 +7,7 @@ const taskSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["Por Hacer", "Haciendo", "Hecho"],
-      default: "Por hacer",
+      default: "Por Hacer",
     },
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   },

@@ -1,4 +1,4 @@
-import Task from "../models/task.model.js";
+import Task from "../models/Task.js";
 
 export const getTasks = async (req, res) => {
   try {
@@ -22,9 +22,7 @@ export const createTask = async (req, res) => {
     await newTask.save();
     res.status(201).json(newTask);
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "No pudimos guardar tu tarea, inténtalo de nuevo" });
+    return res.status(500).json({ message: error.message });
   }
 };
 
