@@ -1,20 +1,8 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
+import app from "./app.js";
+import {connectDB} from "./src/config/database.js";
 
-dotenv.config();
-const app = express();
-const PORT = process.env.PORT || 3000;
+connectDB();
+app.listen(3000);
 
-// Middleware
-app.use(express.json());
-
-// Importar rutas
-//import routes from "./src/routes/index.js";
-//app.use("/api", routes);
-
-// Servidor
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
-});
+console.log("Server on port", 3000);
 
