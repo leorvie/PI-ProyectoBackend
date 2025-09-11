@@ -96,7 +96,7 @@ export const verifyToken = async (req, res) => {
     if (error) return res.sendStatus(401);
 
     const userFound = await User.findById(user.id);
-    if (!userFound) return res.sendStatus(401);
+    if (!userFound) return res.sendStatus(401).json({ message: "Usuario no encontrado" });
 
     return res.json({
       id: userFound._id,
