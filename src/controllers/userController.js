@@ -8,11 +8,6 @@ dotenv.config();
 
 /**
  * Registers a new user in the system.
- * @async
- * @function registerUser
- * @param {import('express').Request} req - Express request object.
- * @param {import('express').Response} res - Express response object.
- * @returns {Promise<void>}
  */
 export const registerUser = async (req, res) => {
   const { name, lastname, age, email, password } = req.body;
@@ -42,17 +37,12 @@ export const registerUser = async (req, res) => {
       age: savedUser.age,
     });
   } catch (error) {
-    res.sendStatus(500).json(["Intenta de nuevo más tarde"]);
+    res.status(500).json(["Intenta de nuevo más tarde"]);
   }
 };
 
 /**
  * Authenticates a user and returns a token if credentials are valid.
- * @async
- * @function loginUser
- * @param {import('express').Request} req - Express request object.
- * @param {import('express').Response} res - Express response object.
- * @returns {Promise<void>}
  */
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
@@ -64,9 +54,7 @@ export const loginUser = async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, userFound.password);
     if (!isMatch)
-      return res
-        .sendStatus(401)
-        .json({ message: "Correo o contraseña inválidos" });
+      return res.status(401).json({ message: "Correo o contraseña inválidos" });
 
     const token = await createAccessToken({ id: userFound._id });
 
@@ -84,8 +72,10 @@ export const loginUser = async (req, res) => {
       updatedAt: userFound.updatedAt,
     });
   } catch (error) {
-    res.sendStatus(500).json({ message: "Intenta de nuevo más tarde" });
+  console.error("Error en loginUser:", error.message);
+  res.status(500).json({ message: "Intenta de nuevo más tarde" });
   }
+  
 };
 
 export const verifyToken = async (req, res) => {
@@ -93,10 +83,10 @@ export const verifyToken = async (req, res) => {
   if (!token) return res.send(false);
 
   jwt.verify(token, process.env.TOKEN_SECRET, async (error, user) => {
-    if (error) return res.sendStatus(401);
+    if (error) return res.status(401).json({ message: "Token inválido" });
 
     const userFound = await User.findById(user.id);
-    if (!userFound) return res.sendStatus(401).json({ message: "Usuario no encontrado" });
+    if (!userFound) return res.status(401).json({ message: "Usuario no encontrado" });
 
     return res.json({
       id: userFound._id,
@@ -111,7 +101,7 @@ export const verifyToken = async (req, res) => {
 export const profile = async (req, res) => {
   const userFound = await User.findById(req.user.id);
   if (!userFound)
-    return res.sendStatus(400).json({ message: "Usuario no encontrado" });
+    return res.status(400).json({ message: "Usuario no encontrado" });
 
   return res.json({
     id: userFound._id,
@@ -126,16 +116,10 @@ export const profile = async (req, res) => {
 
 /**
  * Logs out the current user by clearing the authentication cookie.
- * @async
- * @function logout
- * @param {import('express').Request} req - Express request object.
- * @param {import('express').Response} res - Express response object.
- * @returns {Promise<void>}
  */
 export const logout = async (req, res) => {
   res.cookie("token", "", {
     httpOnly: true,
-
     expires: new Date(0),
   });
   return res.sendStatus(200);
@@ -143,11 +127,6 @@ export const logout = async (req, res) => {
 
 /**
  * Sends a password reset email with a secure, single-use token valid for 1 hour.
- * @async
- * @function forgotPassword
- * @param {import('express').Request} req - Express request object.
- * @param {import('express').Response} res - Express response object.
- * @returns {Promise<void>}
  */
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
@@ -166,18 +145,12 @@ export const forgotPassword = async (req, res) => {
 
   const resetLink = `${process.env.FRONTEND_URL}/reset?token=${token}`;
   await sendResetEmail(user.email, resetLink);
-  //console.log(`Enviar email a ${email} con link: ${resetLink}`);
 
   return res.sendStatus(200);
 };
 
 /**
  * Resets the user's password using a valid, single-use token.
- * @async
- * @function resetPassword
- * @param {import('express').Request} req - Express request object.
- * @param {import('express').Response} res - Express response object.
- * @returns {Promise<void>}
  */
 export const resetPassword = async (req, res) => {
   const { token, password } = req.body;
@@ -185,7 +158,7 @@ export const resetPassword = async (req, res) => {
   try {
     payload = jwt.verify(token, process.env.TOKEN_SECRET);
   } catch {
-    return res.sendStatus(400).json({ message: "Enlace inválido o caducado" });
+    return res.status(400).json({ message: "Enlace inválido o caducado" });
   }
 
   // Busca el usuario con ese token y que no haya expirado
@@ -195,7 +168,7 @@ export const resetPassword = async (req, res) => {
     resetPasswordExpires: { $gt: Date.now() },
   });
   if (!user) {
-    return res.sendStatus(400).json({ message: "Enlace inválido o caducado" });
+    return res.status(400).json({ message: "Enlace inválido o caducado" });
   }
 
   user.password = await bcrypt.hash(password, 10);
