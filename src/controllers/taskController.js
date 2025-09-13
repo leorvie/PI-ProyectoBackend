@@ -15,7 +15,7 @@ export const getTasks = async (req, res) => {
     res.json(tasks);
   } catch (error) {
     return res
-      .sendStatus(500)
+      .status(500)
       .json({ message: "No pudimos obtener tus tareas, inténtalo más tarde" });
   }
 };
@@ -31,16 +31,23 @@ export const getTasks = async (req, res) => {
 
 export const createTask = async (req, res) => {
   try {
-    const { title, details } = req.body;
+    const { title, details, status = "Por Hacer" } = req.body;
+
+    if (!title || !title.trim()) {
+      return res.status(400).json({ message: "El título es obligatorio" });
+    }
+
     const newTask = new Task({
       title,
       details,
+      status,
       user: req.user.id,
     });
-    await newTask.save();
-    res.sendStatus(201).json(newTask);
+   const savedTask = await newTask.save();
+    console.log('Task created successfully:', savedTask); // Para debugging
+    res.status(201).json(savedTask);
   } catch (error) {
-    return res.sendStatus(500).json({ message: "No pudimos crear tu tarea" });
+    return res.status(500).json({ message: "No pudimos crear tu tarea" });
   }
 };
 
@@ -57,11 +64,11 @@ export const deleteTask = async (req, res) => {
   try {
     const deletedTask = await Task.findByIdAndDelete(req.params.id);
     if (!deletedTask)
-      return res.sendStatus(404).json({ message: "Task not found" });
+      return res.status(404).json({ message: "Task not found" });
 
-    return res.sendStatus(204);
+    return res.status(204);
   } catch (error) {
-    return res.sendStatus(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -84,7 +91,7 @@ export const updateTask = async (req, res) => {
     );
     return res.json(taskUpdated);
   } catch (error) {
-    return res.sendStatus(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -102,12 +109,12 @@ export const getTask = async (req, res) => {
     const task = await Task.findById(req.params.id);
     if (!task)
       return res
-        .sendStatus(404)
+        .status(404)
         .json({ message: "No pudimos encontrar tu tarea" });
     return res.json(task);
   } catch (error) {
     return res
-      .sendStatus(500)
+      .status(500)
       .json({ message: "No pudimos encontrar tu tarea" });
   }
 };
