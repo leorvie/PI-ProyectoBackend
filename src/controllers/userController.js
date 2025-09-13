@@ -34,6 +34,16 @@ export const registerUser = async (req, res) => {
     });
 
     const savedUser = await newUser.save();
+
+      // Generar token automáticamente después del registro
+    const token = await createAccessToken({ id: savedUser._id });
+
+    // Establecer cookie con el token
+    res.cookie("token", token, {
+      httpOnly: true,
+    });
+
+
     res.status(201).json({
       id: savedUser._id,
       email: savedUser.email,
@@ -42,7 +52,7 @@ export const registerUser = async (req, res) => {
       age: savedUser.age,
     });
   } catch (error) {
-    res.sendStatus(500).json(["Intenta de nuevo más tarde"]);
+    res.status(500).json(["Intenta de nuevo más tarde"]);
   }
 };
 
@@ -65,7 +75,7 @@ export const loginUser = async (req, res) => {
     const isMatch = await bcrypt.compare(password, userFound.password);
     if (!isMatch)
       return res
-        .sendStatus(401)
+        .status(401)
         .json({ message: "Correo o contraseña inválidos" });
 
     const token = await createAccessToken({ id: userFound._id });
@@ -84,7 +94,7 @@ export const loginUser = async (req, res) => {
       updatedAt: userFound.updatedAt,
     });
   } catch (error) {
-    res.sendStatus(500).json({ message: "Intenta de nuevo más tarde" });
+    res.status(500).json({ message: "Intenta de nuevo más tarde" });
   }
 };
 
@@ -93,10 +103,10 @@ export const verifyToken = async (req, res) => {
   if (!token) return res.send(false);
 
   jwt.verify(token, process.env.TOKEN_SECRET, async (error, user) => {
-    if (error) return res.sendStatus(401);
+    if (error) return res.status(401);
 
     const userFound = await User.findById(user.id);
-    if (!userFound) return res.sendStatus(401).json({ message: "Usuario no encontrado" });
+    if (!userFound) return res.status(401).json({ message: "Usuario no encontrado" });
 
     return res.json({
       id: userFound._id,
@@ -111,7 +121,7 @@ export const verifyToken = async (req, res) => {
 export const profile = async (req, res) => {
   const userFound = await User.findById(req.user.id);
   if (!userFound)
-    return res.sendStatus(400).json({ message: "Usuario no encontrado" });
+    return res.status(400).json({ message: "Usuario no encontrado" });
 
   return res.json({
     id: userFound._id,
@@ -138,7 +148,7 @@ export const logout = async (req, res) => {
 
     expires: new Date(0),
   });
-  return res.sendStatus(200);
+  return res.status(200);
 };
 
 /**
@@ -152,7 +162,7 @@ export const logout = async (req, res) => {
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
   const user = await User.findOne({ email });
-  if (!user) return res.sendStatus(202);
+  if (!user) return res.status(202);
 
   // Crea un JWT con el id del usuario y expira en 1 hora
   const token = jwt.sign({ id: user._id }, process.env.TOKEN_SECRET, {
@@ -168,7 +178,7 @@ export const forgotPassword = async (req, res) => {
   await sendResetEmail(user.email, resetLink);
   //console.log(`Enviar email a ${email} con link: ${resetLink}`);
 
-  return res.sendStatus(200);
+  return res.status(200);
 };
 
 /**
@@ -185,7 +195,7 @@ export const resetPassword = async (req, res) => {
   try {
     payload = jwt.verify(token, process.env.TOKEN_SECRET);
   } catch {
-    return res.sendStatus(400).json({ message: "Enlace inválido o caducado" });
+    return res.status(400).json({ message: "Enlace inválido o caducado" });
   }
 
   // Busca el usuario con ese token y que no haya expirado
@@ -195,12 +205,12 @@ export const resetPassword = async (req, res) => {
     resetPasswordExpires: { $gt: Date.now() },
   });
   if (!user) {
-    return res.sendStatus(400).json({ message: "Enlace inválido o caducado" });
+    return res.status(400).json({ message: "Enlace inválido o caducado" });
   }
 
   user.password = await bcrypt.hash(password, 10);
   user.resetPasswordToken = undefined;
   user.resetPasswordExpires = undefined;
   await user.save();
-  return res.sendStatus(200);
+  return res.status(200);
 };
