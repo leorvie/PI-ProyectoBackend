@@ -82,3 +82,18 @@ Send a POST request to `/api/v1/tasks/new` (authenticated) with:
 ### 5. List Tasks
 
 Send a GET request to `/api/v1/tasks` (authenticated) to retrieve all tasks for the logged-in user.
+
+### 6. Get User Profile
+Send a GET request to `/api/v1/profile` (authenticated) to retrieve the profile information of the logged-in user.
+
+### 7. Update User Profile
+Send a PUT or PATCH request to `/api/v1/profile/edit` (authenticated) with the fields to update:
+```json
+{
+  "name": "New Name",
+  "lastname": "New Lastname",
+  "age": 21,
+  "email": "newemail@example.com",
+}
+```
+If the new email is already registered by another user, you will receive a 409 error.
