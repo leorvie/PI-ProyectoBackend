@@ -98,6 +98,14 @@ export const loginUser = async (req, res) => {
   }
 };
 
+/**
+ * Verifies the authentication token and returns user data if valid.
+ * @async
+ * @function verifyToken
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 export const verifyToken = async (req, res) => {
   const { token } = req.cookies;
   if (!token) return res.send(false);
@@ -118,10 +126,18 @@ export const verifyToken = async (req, res) => {
   });
 };
 
+/**
+ * Returns the profile information of the authenticated user.
+ * @async
+ * @function profile
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 export const profile = async (req, res) => {
   const userFound = await User.findById(req.user.id);
   if (!userFound)
-    return res.status(400).json({ message: "Usuario no encontrado" });
+    return res.status(400).json({ message: "No pudimos obtener tu perfil" });
 
   return res.json({
     id: userFound._id,
@@ -130,9 +146,46 @@ export const profile = async (req, res) => {
     age: userFound.age,
     email: userFound.email,
     createdAt: userFound.createdAt,
-    updatedAt: userFound.updatedAt,
   });
 };
+
+/**
+ * Updates the authenticated user's information. Checks if the new email is available.
+ * @async
+ * @function updateUser
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
+export const updateUser = async (req, res) => {
+  try {
+    const { name, lastname, age, email, password } = req.body;
+    if (email) {
+      const emailExists = await User.findOne({
+        email,
+        _id: { $ne: req.user.id } // Excluye al usuario actual
+      });
+
+
+      if (emailExists) {
+        return res.status(409).json({ message: "Este correo ya está registrado por otro usuario." });
+      }
+    }
+
+    const updateData = { name, lastname, age, email };
+
+    const userUpdate = await User.findByIdAndUpdate(
+      req.user.id,
+      updateData,
+      { new: true }
+    );
+
+    return res.status(200).json(userUpdate);
+
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+}
 
 /**
  * Logs out the current user by clearing the authentication cookie.
