@@ -41,9 +41,9 @@ export const registerUser = async (req, res) => {
     // Establecer cookie con el token
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
-    });
+      secure: process.env.NODE_ENV === 'production', // solo true en producción
+      sameSite: process.env.NODE_ENV === 'production' ? "none" : "lax",
+  });
 
 
     res.status(201).json({
@@ -84,9 +84,10 @@ export const loginUser = async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: process.env.NODE_ENV === 'production', // solo true en producción
+      sameSite: process.env.NODE_ENV === 'production' ? "none" : "lax",
     });
+    
 
     res.status(200).json({
       id: userFound._id,
