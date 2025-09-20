@@ -233,7 +233,8 @@ export const forgotPassword = async (req, res) => {
   user.resetPasswordExpires = Date.now() + 60 * 60 * 1000;
   await user.save();
 
-  const resetLink = `${process.env.FRONTEND_URL}/reset?token=${token}`;
+  
+  const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
   await sendResetEmail(user.email, resetLink);
   //console.log(`Enviar email a ${email} con link: ${resetLink}`);
 
