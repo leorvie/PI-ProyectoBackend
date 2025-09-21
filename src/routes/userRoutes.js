@@ -7,6 +7,7 @@
  * GET    /verify           - Verify authentication token
  * GET    /profile          - Get the authenticated user's profile
  * PUT    /profile/edit     - Update the authenticated user's profile
+ * DELETE /user/:id        - Delete a user and their tasks
  * POST   /forgot-password  - Send password reset email
  * POST   /reset-password   - Reset user password with a valid token
  */
