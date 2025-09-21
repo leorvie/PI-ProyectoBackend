@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { createAccessToken } from "../libs/jwt.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import Task from "../models/Task.js";
 import { sendResetEmail } from "../libs/mailer.js";
 dotenv.config();
 
@@ -210,6 +211,22 @@ export const logout = async (req, res) => {
   return res.sendStatus(200);
 };
 
+
+export const deleteUser = async (req, res) => {
+  try {
+    const userDeleted = await User.findByIdAndDelete(req.user.id);
+    if (!userDeleted)
+      return res.status(404).json({ message: "Cuenta no existe" });
+    // Elimina todas las tareas del usuario
+    await Task.deleteMany({ user: req.user.id });
+    res.clearCookie("token");
+    return res.status(200).json({ message: "Cuenta eliminada correctamente" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+}
+
+
 /**
  * Sends a password reset email with a secure, single-use token valid for 1 hour.
  * @async
@@ -274,3 +291,5 @@ export const resetPassword = async (req, res) => {
   await user.save();
   return res.status(200);
 };
+
+
