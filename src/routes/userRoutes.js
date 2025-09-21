@@ -20,6 +20,7 @@ import {
   forgotPassword,
   resetPassword,
   updateUser
+  , deleteUser
 } from "../controllers/userController.js";
 import { auth } from "../middleware/auth.js";
 
@@ -31,6 +32,7 @@ router.post("/logout", logout);
 router.get("/verify", verifyToken);
 router.get("/profile", auth, profile);
 router.put("/profile/edit", auth, updateUser);
+router.delete("/user/:id", auth, deleteUser); 
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 
