@@ -212,6 +212,15 @@ export const logout = async (req, res) => {
 };
 
 
+/**
+ * Deletes the authenticated user and all their tasks. Clears the authentication cookie.
+ * @async
+ * @function deleteUser
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
+
 export const deleteUser = async (req, res) => {
   try {
     const userDeleted = await User.findByIdAndDelete(req.user.id);
