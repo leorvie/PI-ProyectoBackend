@@ -31,16 +31,21 @@ export const getTasks = async (req, res) => {
 
 export const createTask = async (req, res) => {
   try {
-    const { title, details, status = "Por Hacer" } = req.body;
+    const { title, details, status = "Por Hacer", date } = req.body;
 
     if (!title || !title.trim()) {
       return res.status(400).json({ message: "El título es obligatorio" });
+    }
+
+    if (date && new Date(date) < new Date()) {
+      return res.status(400).json({ message: "La fecha de finalización no puede ser anterior a hoy." });
     }
 
     const newTask = new Task({
       title,
       details,
       status,
+      date,
       user: req.user.id,
     });
    const savedTask = await newTask.save();
@@ -66,11 +71,12 @@ export const deleteTask = async (req, res) => {
     if (!deletedTask)
       return res.status(404).json({ message: "Task not found" });
 
-    return res.status(204);
+    return res.status(200).json({ message: "Task deleted successfully" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 };
+
 
 /**
  * Updates an existing task by its ID.
@@ -83,13 +89,18 @@ export const deleteTask = async (req, res) => {
 
 export const updateTask = async (req, res) => {
   try {
-    const { title, details, status } = req.body;
+    const { title, details, status, date } = req.body;
     if (!title || !title.trim()) {
       return res.status(400).json({ message: "El título es obligatorio" });
     }
+
+    if (date && new Date(date) < new Date()) {
+      return res.status(400).json({ message: "La fecha de finalización no puede ser anterior a hoy." });
+    }
+
     const taskUpdated = await Task.findOneAndUpdate(
       { _id: req.params.id, user: req.user.id },
-      { title, details, status },
+      { title, details, status, date },
       { new: true }
     );
     if (!taskUpdated) {

@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { createAccessToken } from "../libs/jwt.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import Task from "../models/Task.js";
 import { sendResetEmail } from "../libs/mailer.js";
 dotenv.config();
 
@@ -41,9 +42,9 @@ export const registerUser = async (req, res) => {
     // Establecer cookie con el token
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
-    });
+      secure: process.env.NODE_ENV === 'production', // solo true en producción
+      sameSite: process.env.NODE_ENV === 'production' ? "none" : "lax",
+  });
 
 
     res.status(201).json({
@@ -84,9 +85,10 @@ export const loginUser = async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: process.env.NODE_ENV === 'production', // solo true en producción
+      sameSite: process.env.NODE_ENV === 'production' ? "none" : "lax",
     });
+    
 
     res.status(200).json({
       id: userFound._id,
@@ -208,6 +210,30 @@ export const logout = async (req, res) => {
   });
   return res.sendStatus(200);
 };
+
+/**
+ * Deletes the authenticated user and all their tasks. Clears the authentication cookie.
+ * @async
+ * @function deleteUser
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
+
+export const deleteUser = async (req, res) => {
+  try {
+    const userDeleted = await User.findByIdAndDelete(req.user.id);
+    if (!userDeleted)
+      return res.status(404).json({ message: "Cuenta no existe" });
+    // Elimina todas las tareas del usuario
+    await Task.deleteMany({ user: req.user.id });
+    res.clearCookie("token");
+    return res.status(200).json({ message: "Cuenta eliminada correctamente" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+}
+
 /**
  * Sends a password reset email with a secure, single-use token valid for 1 hour.
  * @async
@@ -233,16 +259,16 @@ export const forgotPassword = async (req, res) => {
   user.resetPasswordExpires = Date.now() + 60 * 60 * 1000; // 1 hora
   await user.save();
 
-  // Selecciona la URL de frontend (prod o local)
-  const frontendUrl =
-    process.env.NODE_ENV === "production"
-      ? process.env.FRONTEND_URL_PROD
-      : process.env.FRONTEND_URL_LOCAL;
+// Selecciona la URL de frontend (prod o local)
+const frontendUrl =
+  process.env.NODE_ENV === "production"
+    ? process.env.FRONTEND_URL_PROD
+    : process.env.FRONTEND_URL_LOCAL;
 
-  // Crea el enlace para resetear contraseña
-  const resetLink = `${frontendUrl}/reset-password.html?token=${token}`;
+// Crea el enlace para resetear contraseña
+const resetLink = `${frontendUrl}/reset-password.html?token=${token}`;
 
-  // Envía el email
+// Envía el email
   await sendResetEmail(user.email, resetLink);
 
   // Devuelve estado exitoso (aunque no se diga si el email existe o no)
@@ -290,3 +316,5 @@ export const resetPassword = async (req, res) => {
 
   return res.status(200).json({ message: "Contraseña restablecida exitosamente" });
 };
+
+

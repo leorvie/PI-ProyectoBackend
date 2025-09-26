@@ -7,6 +7,7 @@
  * GET    /verify           - Verify authentication token
  * GET    /profile          - Get the authenticated user's profile
  * PUT    /profile/edit     - Update the authenticated user's profile
+ * DELETE /user/:id        - Delete a user and their tasks
  * POST   /forgot-password  - Send password reset email
  * POST   /reset-password   - Reset user password with a valid token
  */
@@ -20,6 +21,7 @@ import {
   forgotPassword,
   resetPassword,
   updateUser
+  , deleteUser
 } from "../controllers/userController.js";
 import { auth } from "../middleware/auth.js";
 
@@ -31,6 +33,7 @@ router.post("/logout", logout);
 router.get("/verify", verifyToken);
 router.get("/profile", auth, profile);
 router.put("/profile/edit", auth, updateUser);
+router.delete("/user/:id", auth, deleteUser); 
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 

@@ -35,9 +35,11 @@ app.use(cors({
       callback(new Error("No permitido por CORS: " + origin));
     }
   },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+credentials: true,
+origin: process.env.FRONTEND_URL || 'http://localhost:5173', // Permitir frontend
+methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+allowedHeaders: ['Content-Type', 'Authorization'],
+exposedHeaders: ['set-cookie'] // De main
 }));
 
 // Soporte para preflight OPTIONS en cualquier ruta
