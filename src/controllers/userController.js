@@ -211,7 +211,6 @@ export const logout = async (req, res) => {
   return res.sendStatus(200);
 };
 
-
 /**
  * Deletes the authenticated user and all their tasks. Clears the authentication cookie.
  * @async
@@ -235,7 +234,6 @@ export const deleteUser = async (req, res) => {
   }
 }
 
-
 /**
  * Sends a password reset email with a secure, single-use token valid for 1 hour.
  * @async
@@ -246,25 +244,35 @@ export const deleteUser = async (req, res) => {
  */
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
+
+  // Busca si el usuario existe
   const user = await User.findOne({ email });
-  if (!user) return res.status(202);
+  if (!user) return res.status(202).json({ message: "Si el correo existe, recibirás un enlace" });
 
   // Crea un JWT con el id del usuario y expira en 1 hora
   const token = jwt.sign({ id: user._id }, process.env.TOKEN_SECRET, {
     expiresIn: "1h",
   });
 
-  // Guarda el token en el usuario para invalidarlo tras el primer uso
+  // Guarda el token y la expiración en el usuario
   user.resetPasswordToken = token;
-  user.resetPasswordExpires = Date.now() + 60 * 60 * 1000;
+  user.resetPasswordExpires = Date.now() + 60 * 60 * 1000; // 1 hora
   await user.save();
 
-  
-  const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
-  await sendResetEmail(user.email, resetLink);
-  //console.log(`Enviar email a ${email} con link: ${resetLink}`);
+// Selecciona la URL de frontend (prod o local)
+const frontendUrl =
+  process.env.NODE_ENV === "production"
+    ? process.env.FRONTEND_URL_PROD
+    : process.env.FRONTEND_URL_LOCAL;
 
-  return res.status(200);
+// Crea el enlace para resetear contraseña
+const resetLink = `${frontendUrl}/reset-password.html?token=${token}`;
+
+// Envía el email
+  await sendResetEmail(user.email, resetLink);
+
+  // Devuelve estado exitoso (aunque no se diga si el email existe o no)
+  return res.status(200).json({ message: "Se ha enviado un enlace para restablecer tu contraseña" });
 };
 
 /**
@@ -277,8 +285,10 @@ export const forgotPassword = async (req, res) => {
  */
 export const resetPassword = async (req, res) => {
   const { token, password } = req.body;
+
   let payload;
   try {
+    // Verifica que el token sea válido
     payload = jwt.verify(token, process.env.TOKEN_SECRET);
   } catch {
     return res.status(400).json({ message: "Enlace inválido o caducado" });
@@ -290,15 +300,21 @@ export const resetPassword = async (req, res) => {
     resetPasswordToken: token,
     resetPasswordExpires: { $gt: Date.now() },
   });
+
   if (!user) {
     return res.status(400).json({ message: "Enlace inválido o caducado" });
   }
 
+  // Hashea la nueva contraseña
   user.password = await bcrypt.hash(password, 10);
+
+  // Limpia el token (para que solo se use una vez)
   user.resetPasswordToken = undefined;
   user.resetPasswordExpires = undefined;
+
   await user.save();
-  return res.status(200);
+
+  return res.status(200).json({ message: "Contraseña restablecida exitosamente" });
 };
 
 
